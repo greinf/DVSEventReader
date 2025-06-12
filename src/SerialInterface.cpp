@@ -17,13 +17,13 @@ SerialInterface::~SerialInterface() {
     }
 }
 
-void SerialInterface::sendCommand(const std::string& command) {
+void SerialInterface::sendCommand(const char& command) {
     if (!m_serial.is_open()) {
         std::cerr << "Serial port not open!" << std::endl;
         return;
     }
 
-    boost::asio::write(m_serial, boost::asio::buffer(command));
+    boost::asio::write(m_serial, boost::asio::buffer(&command, 1));
 }
 
 std::int16_t SerialInterface::sendtimedCommand_feedback(const std::string& command) {

@@ -7,22 +7,34 @@
 #include <mutex>
 #include <vector>
 #include <optional>
+#include <SerialInterface.hpp>
+
 
 class EventReader {
 public:
     EventReader();
     ~EventReader();
-
-    void start(bool triggered_start);
+    enum class TimeDeltas {
+        deltaFirst,
+        deltaLast,
+        max_value,
+    };
+    void start(bool visualize, SerialInterface*);
     void stop();
     void visualize_Events();
 
     // Zugriff auf die letzten gespeicherten Zeitdifferenzen
     std::vector<int64_t> getSyncEventDifferences();
-    void getTimeDelta() const;
+    void getTimeDelta(TimeDeltas);
+
+    
+
+    std::array<std::string, static_cast<size_t>(TimeDeltas::max_value)> m_time_delta_strings 
+        {"Delta Trigger-timestamp to fist Event-timestamp ",
+        "Delta Trigger-timestamp to last Event-timestamp "};
 
 private:
-    void readLoop(bool trigger);
+    void readLoop();
     void readTrigger();
     std::unique_ptr<dv::io::CameraCapture> m_camera;
     std::thread m_readerThread;
@@ -32,10 +44,9 @@ private:
     std::atomic<bool> m_stop_visualizer;
 
     std::optional <dv::cvector<dv::Trigger>> m_trigger_events;
-    std::optional<int64_t> m_lastTriggerTimestamp;
+    std::vector<int64_t> m_TriggerTimestamp;
     std::mutex m_dataMutex;
     std::vector<int64_t> m_syncEventDiffs;
-    std::atomic<std::int64_t> m_timestamp_first;
-    std::atomic<std::int64_t> m_timestamp_last;
-
+    std::int64_t m_timestamp_first{};
+    std::int64_t m_timestamp_last{};
 };

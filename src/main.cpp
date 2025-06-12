@@ -11,12 +11,18 @@
 int main() {
     
     
-    //EventReader reader;
+    EventReader reader;
     SerialInterface arduino("COM3", 9600);
-    //reader.start(true);  //bool value if if trigger is enabled
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    arduino.sendCommand("P");
+
+    reader.start(true, &arduino);
+
+      //bool value if if visualizer is enabled
     
+    reader.getTimeDelta(EventReader::TimeDeltas::deltaFirst);
+    reader.getTimeDelta(EventReader::TimeDeltas::deltaLast);
+    
+    std::cout << "First Succesfull run. ";
     
     /*
     std::this_thread::sleep_for(std::chrono::seconds(2));  //When opening serial Port Arduino restarts!!!

@@ -11,7 +11,7 @@ public:
     SerialInterface(const std::string& port, unsigned int baud_rate);
     ~SerialInterface();
 
-    void sendCommand(const std::string& command);
+    void sendCommand(const char& command);
     std::int16_t sendtimedCommand_feedback(const std::string& command);
     std::string readLine();  // Optional: receive from Arduino
     std::vector<std::int32_t> m_timestamps{};
