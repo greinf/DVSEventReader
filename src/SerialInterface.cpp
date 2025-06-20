@@ -17,6 +17,21 @@ SerialInterface::~SerialInterface() {
     }
 }
 
+void SerialInterface::readArduinoData() {
+    std::string line = readLine();
+    std::istringstream ss(line);
+    char sep1, sep2;
+
+    if (ss >> m_arduino_output.pulsePhase_timeDelta >> sep1 >> m_arduino_output.diodeValBackround >>
+        sep2 >> m_arduino_output.diodeValPulse) {
+        if (sep1 != ',' || sep2 != ',') {
+            std::runtime_error("Data Transfer from Arudino to machine failed. \n");
+        }
+    }
+
+    throw std::runtime_error("Invalid data format: " + line);
+}
+
 void SerialInterface::sendCommand(const char& command) {
     if (!m_serial.is_open()) {
         std::cerr << "Serial port not open!" << std::endl;

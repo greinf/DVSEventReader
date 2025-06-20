@@ -19,6 +19,7 @@ EventReader::~EventReader() {
     stop();
 }
 
+struct serialoutput;
 void EventReader::start(bool visualize, SerialInterface* arduino) 
 {
     const std::lock_guard<std::mutex> lock(m_dataMutex);
@@ -42,6 +43,7 @@ void EventReader::start(bool visualize, SerialInterface* arduino)
     if (visualizer.joinable()) {
         visualizer.join();
     }
+    arduino->readArduinoData();
 }
 
 void EventReader::stop() {
@@ -65,11 +67,11 @@ void EventReader::readTrigger() {
         if (trigger_event.has_value()) {
             m_trigger.store(true, std::memory_order_release);
             m_trigger_events = trigger_event;
+            //debugging
             /*
             for (const auto& element : m_trigger_events.value()) {
                 std::cout << element.timestamp << '\n';
             }
-            //debugging
             std::cout << "Received " << m_trigger_events->size() << " Triggers" << std::endl;
             //assert(m_trigger_events->size()>1);
             */
@@ -79,20 +81,42 @@ void EventReader::readTrigger() {
     }
 }
 
+void EventReader::stop_visualizer_input() {
+    std::cout << "Press any button to stop visualization \n";
+    
+    char c{};
+    std::cin >> c;
+    if (c)
+        m_stop_visualizer = true;
+}
+
+void EventReader::visualize() {
+    std::lock_guard<std::mutex> lock(m_dataMutex);
+    std::thread stop(&EventReader::stop_visualizer_input, this);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::thread visualize(&EventReader::visualize_Events, this);
+    if (visualize.joinable()) {
+        visualize.join();
+    }
+    if (stop.joinable()) {
+        stop.join();
+    }
+}
+
+
 void EventReader::visualize_Events() {
     // Visualizer
     using namespace std::chrono_literals;
     dv::visualization::EventVisualizer visualizer(*(m_camera -> getEventResolution())); //Event resolution return std::optional value- * to dereference
 
     // Optional: Adjust background and polarity colors
-    visualizer.setBackgroundColor(dv::visualization::colors::white);
-    visualizer.setPositiveColor(dv::visualization::colors::iniBlue);
-    visualizer.setNegativeColor(dv::visualization::colors::darkGrey);
+    visualizer.setBackgroundColor(dv::visualization::colors::black);
+    visualizer.setPositiveColor(dv::visualization::colors::green);
+    visualizer.setNegativeColor(dv::visualization::colors::red);
 
     // OpenCV window
     cv::namedWindow("Events", cv::WINDOW_AUTOSIZE);
     
-
     dv::EventStreamSlicer slicer;
 
     // Register a callback every 33 milliseconds
@@ -140,6 +164,7 @@ void EventReader::readLoop() {
         }
     } while (!m_trigger.load(std::memory_order_acquire));
 
+    m_stop_visualizer = true;
     dv::EventStore store_sliced = store.sliceTime(m_TriggerTimestamp.at(0));
     /*this makes no sense. The event Buffer must be sliced after the point where a trigger signal from the arduino occured. */
 

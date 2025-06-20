@@ -10,34 +10,21 @@
 
 int main() {
     
-    
-    EventReader reader;
     SerialInterface arduino("COM3", 9600);
+    EventReader reader;
+    
+    //necessary to not block let the viusliazation and event accumulation run in parallel to the light pulse.
+    /*
+    std::thread visualizer_thread([&]() {
+        reader.visualize();
+        });
+    */
     std::this_thread::sleep_for(std::chrono::seconds(2));
-
     reader.start(true, &arduino);
-
-      //bool value if if visualizer is enabled
+    //bool value if if visualizer is enabled
     
     reader.getTimeDelta(EventReader::TimeDeltas::deltaFirst);
     reader.getTimeDelta(EventReader::TimeDeltas::deltaLast);
-    
-    std::cout << "First Succesfull run. ";
-    
-    /*
-    std::this_thread::sleep_for(std::chrono::seconds(2));  //When opening serial Port Arduino restarts!!!
-    arduino.sendCommand("P");
-
-    //reader.visualize_Events(); 
-
-    std::cout << "Lese Ereignisse... bitte sende SYNC-Takt an Kamera." << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-
-    reader.stop();
-    reader.getTimeDelta();
-    */
-    
-    
-    
-    
+    arduino.printArudinoData();
+    std::cout << "First Succesfull run. ";   
 }

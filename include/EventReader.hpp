@@ -21,7 +21,7 @@ public:
     };
     void start(bool visualize, SerialInterface*);
     void stop();
-    void visualize_Events();
+    void visualize();
 
     // Zugriff auf die letzten gespeicherten Zeitdifferenzen
     std::vector<int64_t> getSyncEventDifferences();
@@ -34,14 +34,16 @@ public:
         "Delta Trigger-timestamp to last Event-timestamp "};
 
 private:
+    void visualize_Events();
     void readLoop();
     void readTrigger();
+    void stop_visualizer_input();
     std::unique_ptr<dv::io::CameraCapture> m_camera;
     std::thread m_readerThread;
     std::thread m_triggerThread;
-    std::atomic<bool> m_running;
-    std::atomic<bool> m_trigger;
-    std::atomic<bool> m_stop_visualizer;
+    std::atomic<bool> m_running{};
+    std::atomic<bool> m_trigger{};
+    std::atomic<bool> m_stop_visualizer{ false };
 
     std::optional <dv::cvector<dv::Trigger>> m_trigger_events;
     std::vector<int64_t> m_TriggerTimestamp;
